@@ -2,14 +2,10 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"io"
-	"io/ioutil"
-	"log"
-	"net/http"
-	"os"
 
 	fdk "github.com/fnproject/fdk-go"
+	"github.com/nshttpd/fn-tenor/tenor"
 )
 
 const (
@@ -24,16 +20,7 @@ func main() {
 
 func tenorHandler(ctx context.Context, in io.Reader, out io.Writer) {
 
-	var apikey string
-	var ok bool
-
 	fdk.SetHeader(out, "Content-Type", "application/json")
-
-	if apikey, ok = os.LookupEnv(tenorAPIKey); !ok {
-		fdk.WriteStatus(out, 400)
-		io.WriteString(out, `{"error":"improper configuration"}`)
-		return
-	}
 
 	fnctx := fdk.Context(ctx)
 
@@ -43,29 +30,13 @@ func tenorHandler(ctx context.Context, in io.Reader, out io.Writer) {
 		return
 	}
 
-	u := fmt.Sprintf(tenorTrendingAPI, apikey, tenorRequestLimit)
-	log.Printf("uri : %s", u)
-
-	var resp *http.Response
-	var err error
-
-	if resp, err = http.Get(u); err != nil {
-		fdk.WriteStatus(out, 502)
-		io.WriteString(out, `{"error":"bad response from remote"}`)
-		log.Printf("error on request to tenor for trending results: %v", err)
-		return
-	}
-
-	defer resp.Body.Close()
-	body, err := ioutil.ReadAll(resp.Body)
-	if err == nil {
+	d := tenor.GetTenorTrending()
+	if d != nil {
 		fdk.WriteStatus(out, 200)
-		out.Write(body)
+		out.Write(d)
 	} else {
 		fdk.WriteStatus(out, 500)
 		io.WriteString(out, `{"error":"error reading response from remote"}`)
-		log.Println("error reading response from tenor")
-		log.Println(err)
 	}
 
 	return
