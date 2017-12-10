@@ -8,12 +8,6 @@ import (
 	"github.com/nshttpd/fn-tenor/tenor"
 )
 
-const (
-	tenorAPIKey       = "TENOR_API_KEY"
-	tenorRequestLimit = 5
-	tenorTrendingAPI  = "https://api.tenor.com/v1/autocomplete?type=trending&key=%s&limit=%d"
-)
-
 func main() {
 	fdk.Handle(fdk.HandlerFunc(tenorHandler))
 }
