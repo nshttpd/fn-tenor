@@ -23,3 +23,24 @@ go_binary(
     importpath = "github.com/nshttpd/fn-tenor",
     visibility = ["//visibility:public"],
 )
+
+load(
+    "@io_bazel_rules_docker//container:container.bzl",
+    "container_image", "container_push",
+)
+
+container_image(
+    name = "fn-tenor-root",
+    base = "@fn_go//image",
+    files = [":tenor-root"],
+    entrypoint = ["/tenor-root"],
+)
+
+container_push(
+   name = "push_fn-tenor-root",
+   image = ":fn-tenor-root",
+   format = "Docker",
+   registry = "index.docker.io",
+   repository = "nshttpd/fn-tenor-root",
+   tag = "test",
+)
